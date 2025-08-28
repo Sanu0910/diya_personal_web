@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mayuri Ghosh — Nurse Portfolio</title>
+    <meta name="description" content="Compassionate, detail‑oriented nurse delivering safe, evidence‑based care in fast‑paced clinical settings." />
+
+    <!-- Fonts & Tailwind CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: { extend: { fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] } } }
+      }
+    </script>
+    <style>
+      html, body { height: 100%; }
+      body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif; }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gradient-to-b from-sky-50 to-white text-slate-900">
+    <div id="root"></div>
+
+    <!-- React + Framer Motion via ESM CDN -->
+    <script type="module">
+      import React, { useMemo, useState, useEffect } from 'https://esm.sh/react@18';
+      import { createRoot } from 'https://esm.sh/react-dom@18/client';
+      import { motion, AnimatePresence } from 'https://esm.sh/framer-motion@11?external=react,react-dom';
+
+      const Section = ({ id, title, subtitle, children }) => (
+        React.createElement('section', { id, className: 'scroll-mt-24 py-16', 'aria-labelledby': `${id}-title` },
+          React.createElement('div', { className: 'max-w-6xl mx-auto px-6' },
+            React.createElement(motion.h2, {
+              id: `${id}-title`, initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 },
+              transition: { duration: 0.5 }, viewport: { once: true }, className: 'text-3xl md:text-4xl font-bold tracking-tight'
+            }, title),
+            subtitle && React.createElement(motion.p, {
+              initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, transition: { duration: 0.5, delay: 0.05 },
+              viewport: { once: true }, className: 'mt-2 text-slate-600 dark:text-slate-300'
+            }, subtitle),
+            React.createElement('div', { className: 'mt-8' }, children)
+          )
+        )
+      );
+
+      const Badge = ({ children }) => (
+        React.createElement('span', { className: 'inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-sm mr-2 mb-2' }, children)
+      );
+
+      const Card = ({ children, className = '' }) => (
+        React.createElement(motion.div, {
+          initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, transition: { duration: 0.5 }, viewport: { once: true },
+          className: `rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50 backdrop-blur ${className}`
+        }, children)
+      );
+
+      const TimelineItem = ({ when, where, details }) => (
+        React.createElement('li', { className: 'relative pl-8 pb-8' },
+          React.createElement('span', { className: 'absolute left-0 top-1.5 h-3 w-3 rounded-full bg-sky-500' }),
+          React.createElement('div', { className: 'text-sm text-slate-500 dark:text-slate-400' }, when),
+          React.createElement('div', { className: 'font-semibold' }, where),
+          details && React.createElement('div', { className: 'text-slate-600 dark:text-slate-300 mt-1' }, details)
+        )
+      );
+
+      const useSmoothScroll = () => {
+        useEffect(() => {
+          const handler = (e) => {
+            const a = e.target.closest("a[href^='#']");
+            if (!a) return;
+            const id = a.getAttribute('href');
+            const el = document.querySelector(id);
+            if (!el) return;
+            e.preventDefault();
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          };
+          document.addEventListener('click', handler);
+          return () => document.removeEventListener('click', handler);
+        }, []);
+      };
+
+      function NursePortfolio() {
+        useSmoothScroll();
+        const [dark, setDark] = useState(false);
+        useEffect(() => {
+          if (dark) document.documentElement.classList.add('dark');
+          else document.documentElement.classList.remove('dark');
+        }, [dark]);
+
+        const profile = useMemo(() => ({
+          name: 'Mayuri Ghosh',
+          role: 'B.Sc Nursing (WBUHS) — Staff Nurse',
+          headline: 'Compassionate, detail‑oriented nurse delivering safe, evidence‑based care in fast‑paced clinical settings.',
+          address: 'Vill‑Khadimpur, Near Sandhya Cinema Hall, Balurghat, Dakshin Dinajpur, West Bengal 733101',
+          email: 'mayurakshee67777@gmail.com',
+          phones: ['9064050092','8906506940'],
+          blood: 'B(+)ve', dob: '24 Jul 1999', nationality: 'Indian',
+          institute: 'International Institute of Nursing and Research (IINR)',
+          resumeUrl: 'resume.pdf',
+          whatsapp: '919064050092',
+          photo: 'mayuri.jpg' // Add mayuri.jpg in repo root
+        }), []);
+
+        const nav = [
+          { id: 'about', label: 'About' },
+          { id: 'skills', label: 'Skills' },
+          { id: 'experience', label: 'Experience' },
+          { id: 'education', label: 'Education' },
+          { id: 'research', label: 'Research' },
+          { id: 'contact', label: 'Contact' }
+        ];
+
+        return (
+          React.createElement('div', { className: 'min-h-screen bg-gradient-to-b from-sky-50 to-white dark:from-slate-950 dark:to-slate-900 text-slate-900 dark:text-slate-100' },
+            React.createElement('header', { className: 'sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800' },
+              React.createElement('div', { className: 'max-w-6xl mx-auto px-6 h-16 flex items-center justify-between' },
+                React.createElement('a', { href: '#home', className: 'font-bold tracking-tight text-lg' }, 'MG • Nurse'),
+                React.createElement('nav', { className: 'hidden md:flex items-center gap-4' }, nav.map(n => (
+                  React.createElement('a', { key: n.id, href: `#${n.id}`, className: 'px-3 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800' }, n.label)
+                ))),
+                React.createElement('div', { className: 'flex items-center gap-2' },
+                  React.createElement('a', { href: `mailto:${profile.email}`, className: 'hidden sm:inline-flex rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800' }, 'Email'),
+                  React.createElement('button', { 'aria-label': 'Toggle dark mode', onClick: () => setDark(d => !d), className: 'rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800' }, dark ? 'Light' : 'Dark')
+                )
+              )
+            ),
+
+            React.createElement('section', { id: 'home', className: 'relative overflow-hidden' },
+              React.createElement('div', { className: 'absolute inset-0 -z-10' },
+                React.createElement('div', { className: 'absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl' }),
+                React.createElement('div', { className: 'absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl' })
+              ),
+              React.createElement('div', { className: 'max-w-6xl mx-auto px-6 pt-16 md:pt-24' },
+                React.createElement('div', { className: 'grid md:grid-cols-2 gap-8 items-center' },
+                  React.createElement('div', null,
+                    React.createElement(motion.h1, { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6 }, className: 'text-4xl md:text-5xl font-extrabold tracking-tight' }, profile.name),
+                    React.createElement(motion.p, { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay: 0.05 }, className: 'mt-2 text-lg text-slate-600 dark:text-slate-300' }, profile.role),
+                    React.createElement(motion.p, { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay: 0.1 }, className: 'mt-4 max-w-2xl text-slate-700 dark:text-slate-300' }, profile.headline),
+                    React.createElement('div', { className: 'mt-6 flex flex-wrap gap-3' },
+                      React.createElement('a', { href: `tel:${profile.phones[0]}`, className: 'rounded-full bg-sky-600 hover:bg-sky-700 text-white px-4 py-2' }, 'Call Now'),
+                      React.createElement('a', { href: `https://wa.me/${profile.whatsapp}`, target: '_blank', rel: 'noreferrer', className: 'rounded-full border border-sky-600 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-slate-800 px-4 py-2' }, 'WhatsApp'),
+                      React.createElement('a', { href: profile.resumeUrl, download: true, className: 'rounded-full border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-2' }, 'Download CV')
+                    )
+                  ),
+                  React.createElement('div', { className: 'relative flex justify-center' },
+                    React.createElement(motion.img, { src: profile.photo, alt: profile.name, initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, transition: { duration: 0.6 }, className: 'rounded-3xl shadow-xl max-h-[420px] object-cover border border-slate-200 dark:border-slate-700' })
+                  )
+                )
+              )
+            )
+          )
+        );
+      }
+
+      createRoot(document.getElementById('root')).render(React.createElement(NursePortfolio));
+    </script>
+  </body>
+</html>
