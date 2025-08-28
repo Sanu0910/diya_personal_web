@@ -4,9 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Mayuri Ghosh — Nurse Portfolio</title>
-    <meta name="description" content="Compassionate, detail‑oriented nurse delivering safe, evidence‑based care in fast‑paced clinical settings." />
+    <meta name="description" content="Compassionate, detail-oriented nurse delivering safe, evidence-based care in fast-paced clinical settings." />
+    <meta name="color-scheme" content="light dark" />
 
-    <!-- Fonts & Tailwind CDN -->
+    <!-- Fonts & Tailwind (CDN; no build needed) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -20,143 +21,424 @@
     <style>
       html, body { height: 100%; }
       body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif; }
+      img { max-width: 100%; height: auto; }
+      .notice { position: fixed; top: .75rem; left: 50%; transform: translateX(-50%); background: #fff; color: #111827; border: 1px solid #e5e7eb; padding: .5rem .75rem; border-radius: .75rem; box-shadow: 0 10px 25px rgba(0,0,0,.08); font-size: .875rem; z-index: 60; }
+      noscript { display:block; margin: 1rem auto; padding: .75rem 1rem; max-width: 40rem; background:#fffbe6; border:1px solid #fde68a; border-radius:.75rem; color:#92400e; }
     </style>
   </head>
   <body class="min-h-screen bg-gradient-to-b from-sky-50 to-white text-slate-900">
     <div id="root"></div>
+    <noscript>This site requires JavaScript to run. Please enable JavaScript and reload.</noscript>
 
-    <!-- React + Framer Motion via ESM CDN -->
-    <script type="module">
-      import React, { useMemo, useState, useEffect } from 'https://esm.sh/react@18';
-      import { createRoot } from 'https://esm.sh/react-dom@18/client';
-      import { motion, AnimatePresence } from 'https://esm.sh/framer-motion@11?external=react,react-dom';
+    <!-- React 18 & ReactDOM (UMD) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Framer Motion UMD (optional; graceful fallback if blocked) -->
+    <script crossorigin src="https://unpkg.com/framer-motion@11/dist/framer-motion.umd.js"></script>
 
-      const Section = ({ id, title, subtitle, children }) => (
-        React.createElement('section', { id, className: 'scroll-mt-24 py-16', 'aria-labelledby': `${id}-title` },
-          React.createElement('div', { className: 'max-w-6xl mx-auto px-6' },
-            React.createElement(motion.h2, {
-              id: `${id}-title`, initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 },
-              transition: { duration: 0.5 }, viewport: { once: true }, className: 'text-3xl md:text-4xl font-bold tracking-tight'
-            }, title),
-            subtitle && React.createElement(motion.p, {
-              initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, transition: { duration: 0.5, delay: 0.05 },
-              viewport: { once: true }, className: 'mt-2 text-slate-600 dark:text-slate-300'
-            }, subtitle),
-            React.createElement('div', { className: 'mt-8' }, children)
-          )
-        )
-      );
+    <!-- App Script (UMD globals only) -->
+    <script>
+      (function () {
+        try {
+          console.assert(!!window.React, 'React not loaded');
+          console.assert(!!window.ReactDOM, 'ReactDOM not loaded');
+          console.assert(!!document.getElementById('root'), '#root missing');
+        } catch (e) { console.warn(e); }
 
-      const Badge = ({ children }) => (
-        React.createElement('span', { className: 'inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-sm mr-2 mb-2' }, children)
-      );
+        function showNotice(msg) {
+          var n = document.createElement('div');
+          n.className = 'notice';
+          n.innerText = msg;
+          document.body.appendChild(n);
+          setTimeout(function(){ if(n && n.parentNode) n.parentNode.removeChild(n); }, 6000);
+        }
 
-      const Card = ({ children, className = '' }) => (
-        React.createElement(motion.div, {
-          initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, transition: { duration: 0.5 }, viewport: { once: true },
-          className: `rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50 backdrop-blur ${className}`
-        }, children)
-      );
+        if (!window.React || !window.ReactDOM) {
+          showNotice('React/ReactDOM failed to load. Check your network or firewall.');
+          return;
+        }
 
-      const TimelineItem = ({ when, where, details }) => (
-        React.createElement('li', { className: 'relative pl-8 pb-8' },
-          React.createElement('span', { className: 'absolute left-0 top-1.5 h-3 w-3 rounded-full bg-sky-500' }),
-          React.createElement('div', { className: 'text-sm text-slate-500 dark:text-slate-400' }, when),
-          React.createElement('div', { className: 'font-semibold' }, where),
-          details && React.createElement('div', { className: 'text-slate-600 dark:text-slate-300 mt-1' }, details)
-        )
-      );
+        const React = window.React;
+        const ReactDOM = window.ReactDOM;
+        const { useMemo, useState, useEffect, Fragment, createElement: h } = React;
 
-      const useSmoothScroll = () => {
-        useEffect(() => {
-          const handler = (e) => {
-            const a = e.target.closest("a[href^='#']");
-            if (!a) return;
-            const id = a.getAttribute('href');
-            const el = document.querySelector(id);
-            if (!el) return;
-            e.preventDefault();
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          };
-          document.addEventListener('click', handler);
-          return () => document.removeEventListener('click', handler);
-        }, []);
-      };
+        // Framer Motion graceful fallback
+        const fm = (window.framerMotion || {});
+        const AnimatePresence = fm.AnimatePresence || function FallbackAP(props){ return h(Fragment, null, props.children); };
+        const motion = fm.motion || new Proxy({}, {
+          get: function (_t, tag) { return function MotionShim(props) { return h(tag, props, props && props.children); }; }
+        });
 
-      function NursePortfolio() {
-        useSmoothScroll();
-        const [dark, setDark] = useState(false);
-        useEffect(() => {
-          if (dark) document.documentElement.classList.add('dark');
-          else document.documentElement.classList.remove('dark');
-        }, [dark]);
+        // Fallback asset
+        var DEFAULT_PHOTO = "data:image/svg+xml;utf8," + encodeURIComponent(
+          "<svg xmlns='http://www.w3.org/2000/svg' width='600' height='750'>"+
+          "<rect width='100%' height='100%' fill='#e0f2fe'/>"+
+          "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='140' fill='#0369a1' font-family='Arial, Helvetica, sans-serif'>MG</text>"+
+          "</svg>"
+        );
 
-        const profile = useMemo(() => ({
-          name: 'Mayuri Ghosh',
-          role: 'B.Sc Nursing (WBUHS) — Staff Nurse',
-          headline: 'Compassionate, detail‑oriented nurse delivering safe, evidence‑based care in fast‑paced clinical settings.',
-          address: 'Vill‑Khadimpur, Near Sandhya Cinema Hall, Balurghat, Dakshin Dinajpur, West Bengal 733101',
-          email: 'mayurakshee67777@gmail.com',
-          phones: ['9064050092','8906506940'],
-          blood: 'B(+)ve', dob: '24 Jul 1999', nationality: 'Indian',
-          institute: 'International Institute of Nursing and Research (IINR)',
-          resumeUrl: 'resume.pdf',
-          whatsapp: '919064050092',
-          photo: 'mayuri.jpg' // Add mayuri.jpg in repo root
-        }), []);
-
-        const nav = [
-          { id: 'about', label: 'About' },
-          { id: 'skills', label: 'Skills' },
-          { id: 'experience', label: 'Experience' },
-          { id: 'education', label: 'Education' },
-          { id: 'research', label: 'Research' },
-          { id: 'contact', label: 'Contact' }
-        ];
-
-        return (
-          React.createElement('div', { className: 'min-h-screen bg-gradient-to-b from-sky-50 to-white dark:from-slate-950 dark:to-slate-900 text-slate-900 dark:text-slate-100' },
-            React.createElement('header', { className: 'sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800' },
-              React.createElement('div', { className: 'max-w-6xl mx-auto px-6 h-16 flex items-center justify-between' },
-                React.createElement('a', { href: '#home', className: 'font-bold tracking-tight text-lg' }, 'MG • Nurse'),
-                React.createElement('nav', { className: 'hidden md:flex items-center gap-4' }, nav.map(n => (
-                  React.createElement('a', { key: n.id, href: `#${n.id}`, className: 'px-3 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800' }, n.label)
-                ))),
-                React.createElement('div', { className: 'flex items-center gap-2' },
-                  React.createElement('a', { href: `mailto:${profile.email}`, className: 'hidden sm:inline-flex rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800' }, 'Email'),
-                  React.createElement('button', { 'aria-label': 'Toggle dark mode', onClick: () => setDark(d => !d), className: 'rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800' }, dark ? 'Light' : 'Dark')
-                )
-              )
-            ),
-
-            React.createElement('section', { id: 'home', className: 'relative overflow-hidden' },
-              React.createElement('div', { className: 'absolute inset-0 -z-10' },
-                React.createElement('div', { className: 'absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl' }),
-                React.createElement('div', { className: 'absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl' })
-              ),
-              React.createElement('div', { className: 'max-w-6xl mx-auto px-6 pt-16 md:pt-24' },
-                React.createElement('div', { className: 'grid md:grid-cols-2 gap-8 items-center' },
-                  React.createElement('div', null,
-                    React.createElement(motion.h1, { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6 }, className: 'text-4xl md:text-5xl font-extrabold tracking-tight' }, profile.name),
-                    React.createElement(motion.p, { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay: 0.05 }, className: 'mt-2 text-lg text-slate-600 dark:text-slate-300' }, profile.role),
-                    React.createElement(motion.p, { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay: 0.1 }, className: 'mt-4 max-w-2xl text-slate-700 dark:text-slate-300' }, profile.headline),
-                    React.createElement('div', { className: 'mt-6 flex flex-wrap gap-3' },
-                      React.createElement('a', { href: `tel:${profile.phones[0]}`, className: 'rounded-full bg-sky-600 hover:bg-sky-700 text-white px-4 py-2' }, 'Call Now'),
-                      React.createElement('a', { href: `https://wa.me/${profile.whatsapp}`, target: '_blank', rel: 'noreferrer', className: 'rounded-full border border-sky-600 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-slate-800 px-4 py-2' }, 'WhatsApp'),
-                      React.createElement('a', { href: profile.resumeUrl, download: true, className: 'rounded-full border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-2' }, 'Download CV')
-                    )
-                  ),
-                  React.createElement('div', { className: 'relative flex justify-center' },
-                    React.createElement(motion.img, { src: profile.photo, alt: profile.name, initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, transition: { duration: 0.6 }, className: 'rounded-3xl shadow-xl max-h-[420px] object-cover border border-slate-200 dark:border-slate-700' })
-                  )
-                )
-              )
+        const Section = ({ id, title, subtitle, children }) => (
+          h('section', { id, className: 'scroll-mt-24 py-16', 'aria-labelledby': id + '-title' },
+            h('div', { className: 'max-w-6xl mx-auto px-6' },
+              h(motion.h2, {
+                id: id + '-title', initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 },
+                transition: { duration: 0.5 }, viewport: { once: true }, className: 'text-3xl md:text-4xl font-bold tracking-tight'
+              }, title),
+              subtitle ? h(motion.p, {
+                initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, transition: { duration: 0.5, delay: 0.05 },
+                viewport: { once: true }, className: 'mt-2 text-slate-600 dark:text-slate-300'
+              }, subtitle) : null,
+              h('div', { className: 'mt-8' }, children)
             )
           )
         );
-      }
 
-      createRoot(document.getElementById('root')).render(React.createElement(NursePortfolio));
+        const Badge = ({ children }) => (
+          h('span', { className: 'inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-sm mr-2 mb-2' }, children)
+        );
+
+        const Card = ({ children, className }) => (
+          h(motion.div, {
+            initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, transition: { duration: 0.5 }, viewport: { once: true },
+            className: 'rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50 backdrop-blur ' + (className || '')
+          }, children)
+        );
+
+        const TimelineItem = ({ when, where, details }) => (
+          h('li', { className: 'relative pl-8 pb-8' },
+            h('span', { className: 'absolute left-0 top-1.5 h-3 w-3 rounded-full bg-sky-500' }),
+            h('div', { className: 'text-sm text-slate-500 dark:text-slate-400' }, when),
+            h('div', { className: 'font-semibold' }, where),
+            details ? h('div', { className: 'text-slate-600 dark:text-slate-300 mt-1' }, details) : null
+          )
+        );
+
+        // Smooth scrolling for in-page links
+        function useSmoothScroll () {
+          useEffect(function () {
+            function handler (e) {
+              var a = e.target && e.target.closest && e.target.closest("a[href^='#']");
+              if (!a) return;
+              var id = a.getAttribute('href');
+              var el = id && document.querySelector(id);
+              if (!el) return;
+              e.preventDefault();
+              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            document.addEventListener('click', handler);
+            return function () { document.removeEventListener('click', handler); };
+          }, []);
+        }
+
+        function App () {
+          useSmoothScroll();
+          const [dark, setDark] = useState(false);
+          const [lightbox, setLightbox] = useState({ open: false, idx: 0 });
+
+          useEffect(function(){
+            document.documentElement.classList.toggle('dark', dark);
+          }, [dark]);
+
+          const profile = useMemo(function(){ return ({
+            name: 'Mayuri Ghosh',
+            role: 'B.Sc Nursing (WBUHS) — Staff Nurse',
+            headline: 'Compassionate, detail-oriented nurse delivering safe, evidence-based care in fast-paced clinical settings.',
+            address: 'Vill-Khadimpur, Near Sandhya Cinema Hall, Balurghat, Dakshin Dinajpur, West Bengal 733101',
+            email: 'mayurakshee67777@gmail.com',
+            phones: ['9064050092','8906506940'],
+            blood: 'B(+)ve', dob: '24 Jul 1999', nationality: 'Indian',
+            institute: 'International Institute of Nursing and Research (IINR)',
+            resumeUrl: 'resume.pdf',
+            whatsapp: '919064050092',
+            photo: 'mayuri.jpg',
+            gallery: ['mayuri-1.jpg','mayuri-2.jpg','mayuri-3.jpg']
+          }); }, []);
+
+          const strengths = [
+            'Proactive multitasker','Calm under pressure','Ethical & patient-centric','Strong written & verbal communication','Follows instructions & feedback','Physically fit for full nursing duties','Complete patient assessment & documentation'
+          ];
+          const duties = [
+            'Assist in procedures & carry out doctors’ orders as per standards','Meet patients’ holistic nursing needs','Participate in nursing team meetings','Comply with legal, regulatory & best-practice guidelines'
+          ];
+          const languages = [
+            { name: 'English', r: true, w: true, s: true },
+            { name: 'Bengali', r: true, w: true, s: true },
+            { name: 'Hindi', r: false, w: true, s: true }
+          ];
+          const clinical = [
+            'Nil Ratan Sircar Medical College & Hospital','Dr. B. C. Roy Post Graduate Institute of Paediatric Sciences','Calcutta Pavlov Hospital','Imambara District Hospital, Hooghly','Ranaghat Sub-Divisional Hospital, Nadia'
+          ];
+          const community = [
+            'Haringhata B.R.N.C & Birohi B.P.H.C (Rural)','Rabindranath Colony, Kalyani U.P.H.C (Urban)'
+          ];
+          const internship = [
+            'College of Medicine & JNM Hospital (Kalyani, Nadia)','Manorama Hospital','Ranaghat Sub-Divisional Hospital','Kathaltala U.P.H.C','Birahi B.P.H.C'
+          ];
+          const education = [
+            { when: '2021–2024', where: 'B.Sc Nursing (WBUHS), IINR', score: 'Parts I–IV: 68–72%' },
+            { when: '2018–2020', where: 'B.Sc Zoology (Univ. of Gour Banga) — Balurghat Mahila Mahavidyalaya', score: 'Part I: 58.5%, Part II: 54%, Part III: 82%' },
+            { when: '2017', where: 'W.B.C.H.S.E — Balurghat Lalit Mohan Adarsha Uchcha Vidyalaya', score: '75%' },
+            { when: '2015', where: 'W.B.B.S.E — Balurghat Khadimpur Girls’ High School', score: '84.29%' }
+          ];
+          const researchText = 'A descriptive study to assess knowledge regarding initiation of breastfeeding among primipara mothers; development of a self-instructional module in Postnatal Ward, Kalyani, West Bengal (College of Medicine & JNM Hospital).';
+
+          const nav = [
+            { id: 'about', label: 'About' },
+            { id: 'skills', label: 'Skills' },
+            { id: 'experience', label: 'Experience' },
+            { id: 'education', label: 'Education' },
+            { id: 'research', label: 'Research' },
+            { id: 'gallery', label: 'Gallery' },
+            { id: 'contact', label: 'Contact' }
+          ];
+
+          return (
+            h('div', { className: 'min-h-screen bg-gradient-to-b from-sky-50 to-white dark:from-slate-950 dark:to-slate-900 text-slate-900 dark:text-slate-100' },
+              /* Header */
+              h('header', { className: 'sticky top-0 z-50 backdrop-blur bg-white/60 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800' },
+                h('div', { className: 'max-w-6xl mx-auto px-6 h-16 flex items-center justify-between' },
+                  h('a', { href: '#home', className: 'font-bold tracking-tight text-lg' }, 'MG • Nurse'),
+                  h('nav', { className: 'hidden md:flex items-center gap-4' }, nav.map(n => (
+                    h('a', { key: n.id, href: '#' + n.id, className: 'px-3 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800' }, n.label)
+                  ))),
+                  h('div', { className: 'flex items-center gap-2' },
+                    h('a', { href: 'mailto:' + profile.email, className: 'hidden sm:inline-flex rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800' }, 'Email'),
+                    h('button', { 'aria-label': 'Toggle dark mode', onClick: function(){ setDark(function(d){ return !d; }); }, className: 'rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800' }, dark ? 'Light' : 'Dark')
+                  )
+                )
+              ),
+
+              /* Hero */
+              h('section', { id: 'home', className: 'relative overflow-hidden' },
+                h('div', { className: 'absolute inset-0 -z-10' },
+                  h('div', { className: 'absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl' }),
+                  h('div', { className: 'absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl' })
+                ),
+                h('div', { className: 'max-w-6xl mx-auto px-6 pt-16 md:pt-24' },
+                  h('div', { className: 'grid md:grid-cols-2 gap-8 items-center' },
+                    h('div', null,
+                      h(motion.h1, { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6 }, className: 'text-4xl md:text-5xl font-extrabold tracking-tight' }, profile.name),
+                      h(motion.p, { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay: 0.05 }, className: 'mt-2 text-lg text-slate-600 dark:text-slate-300' }, profile.role),
+                      h(motion.p, { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay: 0.1 }, className: 'mt-4 max-w-2xl text-slate-700 dark:text-slate-300' }, profile.headline),
+                      h('div', { className: 'mt-6 flex flex-wrap gap-3' },
+                        h('a', { href: 'tel:' + profile.phones[0], className: 'rounded-full bg-sky-600 hover:bg-sky-700 text-white px-4 py-2' }, 'Call Now'),
+                        h('a', { href: 'https://wa.me/' + profile.whatsapp, target: '_blank', rel: 'noopener noreferrer', className: 'rounded-full border border-sky-600 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-slate-800 px-4 py-2' }, 'WhatsApp'),
+                        h('a', { href: profile.resumeUrl, download: true, className: 'rounded-full border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-2' }, 'Download CV')
+                      ),
+                      h('div', { className: 'mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm' },
+                        h(Card, { className: 'p-4' }, h('div', { className: 'font-semibold' }, 'Blood Group'), h('div', { className: 'text-slate-600 dark:text-slate-300' }, profile.blood)),
+                        h(Card, { className: 'p-4' }, h('div', { className: 'font-semibold' }, 'DOB'), h('div', { className: 'text-slate-600 dark:text-slate-300' }, profile.dob)),
+                        h(Card, { className: 'p-4' }, h('div', { className: 'font-semibold' }, 'Nationality'), h('div', { className: 'text-slate-600 dark:text-slate-300' }, profile.nationality))
+                      )
+                    ),
+                    h('div', { className: 'relative flex justify-center' },
+                      h(motion.img, { src: profile.photo, alt: profile.name, loading: 'lazy', onError: function(e){ e.target.src = DEFAULT_PHOTO; }, initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, transition: { duration: 0.6 }, className: 'rounded-3xl shadow-xl max-h-[420px] object-cover border border-slate-200 dark:border-slate-700' })
+                    )
+                  )
+                )
+              ),
+
+              /* About */
+              h(Section, { id: 'about', title: 'About', subtitle: 'Who I am & how I care' },
+                h(Card, { className: 'p-6' },
+                  h('p', { className: 'leading-7 text-slate-700 dark:text-slate-300' },
+                    'I am an enthusiastic, hard-working and competent healthcare professional with hands-on exposure across tertiary hospitals and community health centres. I remain calm in high-pressure situations, respond quickly to emergencies and deliver thorough assessments with complete documentation. I am seeking a Staff Nurse role in a modern, well-equipped clinical setting that supports continuous learning and best-practice nursing.'
+                  ),
+                  h('div', { className: 'mt-6 flex flex-wrap' }, strengths.map(function(s){ return h(Badge, { key: s }, s); }))
+                )
+              ),
+
+              /* Skills */
+              h(Section, { id: 'skills', title: 'Core Competencies', subtitle: 'Clinical strengths I bring to your team' },
+                h('div', { className: 'grid md:grid-cols-2 gap-6' },
+                  h(Card, { className: 'p-6' },
+                    h('h3', { className: 'font-semibold mb-2' }, 'Patient Care & Safety'),
+                    h('ul', { className: 'list-disc ml-5 space-y-2 text-slate-700 dark:text-slate-300' },
+                      h('li', null, 'Initial & ongoing assessment, vitals, nursing process (ADPIE)'),
+                      h('li', null, 'Medication administration with 6 rights; asepsis & infection control'),
+                      h('li', null, 'Documentation: complete, accurate, medico-legal compliance')
+                    )
+                  ),
+                  h(Card, { className: 'p-6' },
+                    h('h3', { className: 'font-semibold mb-2' }, 'Teamwork & Protocols'),
+                    h('ul', { className: 'list-disc ml-5 space-y-2 text-slate-700 dark:text-slate-300' },
+                      h('li', null, 'Carrying out physician orders per standards & SOPs'),
+                      h('li', null, 'Handoffs, nursing huddles & multi-disciplinary collaboration'),
+                      h('li', null, 'Code response readiness; escalation & reporting')
+                    )
+                  )
+                ),
+                h(Card, { className: 'mt-6 p-6' },
+                  h('h3', { className: 'font-semibold mb-2' }, 'Duties & Responsibilities'),
+                  h('ul', { className: 'list-disc ml-5 space-y-2 text-slate-700 dark:text-slate-300' },
+                    duties.map(function(d){ return h('li', { key: d }, d); })
+                  )
+                )
+              ),
+
+              /* Experience */
+              h(Section, { id: 'experience', title: 'Experience', subtitle: 'Clinical, community & internship rotations' },
+                h('div', { className: 'grid lg:grid-cols-3 gap-6' },
+                  h(Card, { className: 'p-6' },
+                    h('h3', { className: 'font-semibold text-lg' }, 'Clinical Postings'),
+                    h('ul', { className: 'mt-4' }, clinical.map(function(c){ return h(TimelineItem, { key: c, when: 'Student Nurse', where: c }); }))
+                  ),
+                  h(Card, { className: 'p-6' },
+                    h('h3', { className: 'font-semibold text-lg' }, 'Community Health'),
+                    h('ul', { className: 'mt-4' }, community.map(function(c){ return h(TimelineItem, { key: c, when: 'Rural/Urban', where: c }); }))
+                  ),
+                  h(Card, { className: 'p-6' },
+                    h('h3', { className: 'font-semibold text-lg' }, 'Internship'),
+                    h('ul', { className: 'mt-4' }, internship.map(function(c){ return h(TimelineItem, { key: c, when: 'Rotation', where: c }); }))
+                  )
+                )
+              ),
+
+              /* Education */
+              h(Section, { id: 'education', title: 'Education', subtitle: 'Academic background & key results' },
+                h(Card, { className: 'p-6' },
+                  h('ul', { className: 'mt-2' }, education.map(function(e){ return h(TimelineItem, { key: e.where, when: e.when, where: e.where, details: e.score }); }))
+                )
+              ),
+
+              /* Research */
+              h(Section, { id: 'research', title: 'Research & Projects', subtitle: 'Areas of interest & study works' },
+                h('div', { className: 'grid md:grid-cols-2 gap-6' },
+                  h(Card, { className: 'p-6' },
+                    h('h3', { className: 'font-semibold' }, 'Breastfeeding Initiation — Knowledge Study'),
+                    h('p', { className: 'mt-2 text-slate-700 dark:text-slate-300' }, researchText),
+                    h('div', { className: 'mt-4 flex flex-wrap gap-2' },
+                      h(Badge, null, 'Maternal & Child Health'),
+                      h(Badge, null, 'Education Module'),
+                      h(Badge, null, 'Postnatal Care')
+                    )
+                  ),
+                  h(Card, { className: 'p-6' },
+                    h('h3', { className: 'font-semibold' }, 'Languages'),
+                    h('ul', { className: 'mt-3 space-y-2' },
+                      languages.map(function(l){
+                        var summary = (l.r ? 'Read' : '') + (l.r && (l.w || l.s) ? ' · ' : '') + (l.w ? 'Write' : '') + (l.w && l.s ? ' · ' : '') + (l.s ? 'Speak' : '');
+                        return h('li', { key: l.name, className: 'flex items-center justify-between' }, h('span', null, l.name), h('span', { className: 'text-sm text-slate-500' }, summary));
+                      })
+                    )
+                  )
+                )
+              ),
+
+              /* Gallery */
+              h(Section, { id: 'gallery', title: 'Gallery', subtitle: 'A glimpse beyond the scrubs' },
+                h('div', { className: 'grid grid-cols-2 md:grid-cols-3 gap-4' },
+                  profile.gallery.map(function(src, i){
+                    return h('button', { key: src, onClick: function(){ setLightbox({ open: true, idx: i }); }, className: 'group relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700' },
+                      h('img', { src: src, alt: 'Mayuri ' + (i+1), loading: 'lazy', onError: function(e){ e.target.src = DEFAULT_PHOTO; }, className: 'aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-300 ease-out' })
+                    );
+                  })
+                ),
+                h(AnimatePresence, null,
+                  lightbox.open ? h(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: 'fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4' },
+                    h('div', { className: 'relative max-w-3xl w-full' },
+                      h('button', { onClick: function(){ setLightbox({ open: false, idx: 0 }); }, className: 'absolute -top-10 right-0 text-white/80 hover:text-white' }, 'Close ✕'),
+                      h(motion.img, { key: lightbox.idx, src: profile.gallery[lightbox.idx], alt: 'Preview', onError: function(e){ e.target.src = DEFAULT_PHOTO; }, initial: { scale: 0.95, opacity: 0 }, animate: { scale: 1, opacity: 1 }, exit: { scale: 0.95, opacity: 0 }, className: 'rounded-xl shadow-2xl border border-white/20' }),
+                      h('div', { className: 'mt-3 flex items-center justify-between' },
+                        h('button', { onClick: function(){ setLightbox(function(s){ return { open: true, idx: (s.idx + profile.gallery.length - 1) % profile.gallery.length }; }); }, className: 'px-4 py-2 rounded-lg bg-white text-slate-900' }, '‹ Prev'),
+                        h('button', { onClick: function(){ setLightbox(function(s){ return { open: true, idx: (s.idx + 1) % profile.gallery.length }; }); }, className: 'px-4 py-2 rounded-lg bg-white text-slate-900' }, 'Next ›')
+                      )
+                    )
+                  ) : null
+                )
+              ),
+
+              /* Contact */
+              h(Section, { id: 'contact', title: 'Contact', subtitle: 'Reach out for staffing & opportunities' },
+                h('div', { className: 'grid md:grid-cols-3 gap-6' },
+                  h(Card, { className: 'p-6' },
+                    h('div', { className: 'font-semibold' }, 'Phone'),
+                    h('div', { className: 'mt-1 space-y-1 text-slate-700 dark:text-slate-300' }, profile.phones.map(function(p){ return h('div', { key: p }, h('a', { className: 'hover:underline', href: 'tel:' + p }, p)); }))
+                  ),
+                  h(Card, { className: 'p-6' },
+                    h('div', { className: 'font-semibold' }, 'Email'),
+                    h('div', { className: 'mt-1 text-slate-700 dark:text-slate-300' }, h('a', { className: 'hover:underline', href: 'mailto:' + profile.email }, profile.email))
+                  ),
+                  h(Card, { className: 'p-6' },
+                    h('div', { className: 'font-semibold' }, 'Address'),
+                    h('div', { className: 'mt-1 text-slate-700 dark:text-slate-300' }, profile.address)
+                  )
+                ),
+
+                h(Card, { className: 'mt-6 p-6' },
+                  h('h3', { className: 'font-semibold mb-2' }, 'Quick Inquiry'),
+                  h('form', {
+                      onSubmit: function(e){
+                        e.preventDefault();
+                        var data = new FormData(e.currentTarget);
+                        var subject = encodeURIComponent('Nursing Opportunity — ' + data.get('name'));
+                        var body = encodeURIComponent(
+                          'Hello Mayuri,%0D%0A%0D%0A' +
+                          'My name is ' + (data.get('name') || '') + '. ' + (data.get('message') || '') +
+                          '%0D%0A%0D%0AYou can reach me at ' + (data.get('email') || '') + (data.get('phone') ? (', ' + data.get('phone')) : '') + '.'
+                        );
+                        window.location.href = 'mailto:' + profile.email + '?subject=' + subject + '&body=' + body;
+                      },
+                      className: 'grid md:grid-cols-3 gap-4'
+                    },
+                    h('label', { className: 'sr-only', htmlFor: 'inq-name' }, 'Your name'),
+                    h('input', { id: 'inq-name', required: true, name: 'name', placeholder: 'Your name', className: 'rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 px-4 py-2' }),
+                    h('label', { className: 'sr-only', htmlFor: 'inq-email' }, 'Email'),
+                    h('input', { id: 'inq-email', required: true, type: 'email', name: 'email', placeholder: 'Email', className: 'rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 px-4 py-2' }),
+                    h('label', { className: 'sr-only', htmlFor: 'inq-phone' }, 'Phone'),
+                    h('input', { id: 'inq-phone', name: 'phone', placeholder: 'Phone (optional)', className: 'rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 px-4 py-2' }),
+                    h('label', { className: 'sr-only', htmlFor: 'inq-msg' }, 'Message'),
+                    h('textarea', { id: 'inq-msg', required: true, name: 'message', placeholder: 'Your message', className: 'md:col-span-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50 px-4 py-2 min-h-[120px]' }),
+                    h('button', { type: 'submit', className: 'md:col-span-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 font-medium' }, 'Send Email')
+                  )
+                )
+              ),
+
+              /* Footer */
+              h('footer', { className: 'py-10 border-t border-slate-200 dark:border-slate-800' },
+                h('div', { className: 'max-w-6xl mx-auto px-6 text-sm flex flex-col md:flex-row items-center justify-between gap-3' },
+                  h('div', null, '© ' + new Date().getFullYear() + ' ' + profile.name + ' — Staff Nurse. All rights reserved.'),
+                  h('div', { className: 'flex flex-wrap gap-2 items-center' }, ['Drawing','Sketching','Hand-crafting','Dancing'].map(function(x){ return h(Badge, { key: x }, x); }))
+                )
+              ),
+
+              /* Floating CTA & Back-to-top */
+              h(AnimatePresence, null,
+                h(motion.a, { href: 'https://wa.me/' + profile.whatsapp, target: '_blank', rel: 'noopener noreferrer', initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 30 }, transition: { duration: 0.4 }, className: 'fixed bottom-5 right-5 rounded-full shadow-lg bg-green-500 text-white px-5 py-3' }, 'Chat on WhatsApp')
+              ),
+              h('a', { href: '#home', className: 'fixed bottom-5 left-5 rounded-full border border-slate-300 dark:border-slate-700 bg-white/90 dark:bg-slate-900/70 backdrop-blur px-4 py-2 text-sm' }, '↑ Back to top')
+            )
+          );
+        }
+
+        // Render root
+        try {
+          var container = document.getElementById('root');
+          var root = ReactDOM.createRoot(container);
+          root.render(React.createElement(App));
+
+          // Sanity checks (helpful in GH Pages)
+          console.assert(document.querySelector('a[href^="mailto:"]'), 'mailto link missing');
+          console.assert(document.querySelector('a[href^="https://wa.me/"]'), 'WhatsApp link missing');
+          console.assert(document.querySelector('#gallery'), '#gallery section missing');
+          console.assert(document.querySelector('#education'), '#education section missing');
+          console.assert(document.querySelector('button[aria-label="Toggle dark mode"]'), 'dark mode toggle missing');
+          console.assert(document.querySelector('a[download][href$="resume.pdf"]'), 'resume download link missing');
+          (function(){
+            var form = document.querySelector('#contact form');
+            console.assert(!!form, 'contact form missing');
+            if (form) {
+              console.assert(form.querySelector('input[name="name"]'), 'contact form: name input missing');
+              console.assert(form.querySelector('input[name="email"]'), 'contact form: email input missing');
+              console.assert(form.querySelector('textarea[name="message"]'), 'contact form: message textarea missing');
+            }
+            console.assert(document.querySelector('img[alt="' + (document.title.split(' — ')[0]) + '"]') || document.querySelector('#home img'), 'hero image missing');
+          })();
+        } catch (err) {
+          console.error(err);
+          showNotice('Render failed: ' + (err && err.message ? err.message : err));
+        }
+      })();
     </script>
   </body>
 </html>
